@@ -19,11 +19,14 @@ type ImportData struct {
 }
 
 func main() {
+	importTest()
+
 	stream, err := ioutil.ReadFile("test.csv")
 	if err != nil {
 		panic("file open error")
 	}
 	reader := csv.NewReader(strings.NewReader(string(stream)))
+	reader.Comma = ';'
 
 	var line ImportData
 	for {
