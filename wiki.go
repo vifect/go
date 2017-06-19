@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 )
 
 func main() {
 	http.HandleFunc("/", handler)
+	http.HandleFunc("/view/", viewHanlder)
+	http.HandleFunc("/edit/", viewHanlder)
 	http.ListenAndServe(":8080", nil)
 	//p2, _ := loadPage("TestPage")
 	//fmt.Println(string(p2.Body))
@@ -44,6 +47,24 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func viewHanlder(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Path[len("/view/"):]
-	p, _ := loadPage(title)
-	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
+	p, err := loadPage(title)
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+	renderTemplate(w, "view", p)
+}
+
+func editHanlder(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/edit/"):]
+	p, err := loadPage(title)
+	if err != nil {
+		p = &Page{Title: title}
+	}
+	renderTemplate(w, "edit", p)
+}
+
+func renderTemplate(w http.ResponseWriter, templName string, p *Page) {
+	templ, _ := template.ParseFiles(templName + ".html")
+	templ.Execute(w, p)
 }
