@@ -46,7 +46,7 @@ func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
 		http.NotFound(w, r)
 		return "", errors.New("Invalid Page Title")
 	}
-	return match[2], nil
+	return match[2], nil // The title is the second subexpression.
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -55,8 +55,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/view/"):]
+func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
+	title, err := getTitle(w, r)
 	p, err := loadPage(title)
 	if err != nil {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
@@ -65,8 +65,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "view", p)
 }
 
-func editHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/edit/"):]
+func editHandler(w http.ResponseWriter, r *http.Request, title string) {
+	title, err := getTitle(w, r)
 	p, err := loadPage(title)
 	if err != nil {
 		p = &Page{Title: title}
@@ -74,8 +74,8 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "edit", p)
 }
 
-func saveHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/save/"):]
+func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
+	title, err := getTitle(w, r)
 	body := r.FormValue("body")
 	p := &Page{Title: title, Body: []byte(body)}
 	p.save()
